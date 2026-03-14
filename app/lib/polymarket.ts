@@ -133,12 +133,6 @@ const EXCLUDE_PATTERNS = [
     /\bdemocrat\b|\brepublican\b/i,
     /\bgop\b/i,
     /\bswing\s+state\b/i,
-    /in\s+march/i,
-    /by\s+end\s+of\s+march/i,
-    /hit\s+in\s+march/i,
-    /reach\s+in\s+march/i,
-    /close\s+in\s+march/i,
-    /finish\s+in\s+march/i,
     // Note: removed /ceo/, /musk/, /iphone/, /cybertruck/ to allow stock markets
 ];
 
