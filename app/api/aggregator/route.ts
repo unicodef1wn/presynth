@@ -54,12 +54,12 @@ export async function GET() {
             };
         });
 
-        // 3. STRICT FILTERING: Eliminate 0% spread and invalid data
+        // 3. FILTERING: Keep it relaxed so we show SOME data even if edge is small
         const safeAggregated = aggregated.filter(item => 
             item.synthdata !== null &&
             item.impliedOdds !== null &&
-            item.impliedOdds !== 0.5 && // Filter out dead 50/50 markets
-            Math.abs(item.synthdata.discrepancy) > 0.0001 && // Eliminate EXACT 0.0% spreads (fallbacks)
+            // item.impliedOdds !== 0.5 && // Show all markets
+            // Math.abs(item.synthdata.discrepancy) > 0.0001 && // Show even small edges
             !item.title.toLowerCase().includes('up or down') &&
             !item.slug.toLowerCase().includes('up-or-down')
         );

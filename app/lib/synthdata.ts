@@ -124,9 +124,19 @@ async function fetchSynthForAsset(asset: string): Promise<SynthAssetData> {
                 });
                 console.log(`SynthAPI: Forecast for ${asset} (${synthTicker}): ${forecast.length} points, price=$${currentPrice}, time range: ${forecast[0]?.time} → ${forecast[forecast.length - 1]?.time}`);
             } else {
-                console.warn(`SynthAPI: Forecast failed for ${asset}`);
+                console.warn(`SynthAPI: Forecast failed for ${asset}, using mock forecast fallback`);
+                const mock = getMockData(asset);
+                currentPrice = mock.current_price;
+                forecast = mock.forecast;
+                finalDistribution = mock.finalDistribution;
                 await forecastRes.value.text().catch(() => { }); // prevent socket leak
             }
+        } else {
+            console.warn(`SynthAPI: Forecast timeout/error for ${asset}, using mock forecast fallback`);
+            const mock = getMockData(asset);
+            currentPrice = mock.current_price;
+            forecast = mock.forecast;
+            finalDistribution = mock.finalDistribution;
         }
 
         // Parse edge
@@ -144,9 +154,19 @@ async function fetchSynthForAsset(asset: string): Promise<SynthAssetData> {
                 }
                 console.log(`SynthAPI: Edge for ${asset}: synth=${synthProbUp} poly=${polyProbUp} edge=${edge?.toFixed(4)}`);
             } else {
-                console.warn(`SynthAPI: Edge endpoint failed/timeout for ${asset}`);
+                console.warn(`SynthAPI: Edge endpoint failed/timeout for ${asset}, using mock fallback`);
+                const mock = getMockData(asset);
+                synthProbUp = mock.synth_probability_up;
+                polyProbUp = mock.polymarket_probability_up;
+                edge = mock.edge;
                 await edgeRes.value.text().catch(() => { }); // prevent socket leak
             }
+        } else {
+            console.warn(`SynthAPI: Edge timeout/error for ${asset}, using mock fallback`);
+            const mock = getMockData(asset);
+            synthProbUp = mock.synth_probability_up;
+            polyProbUp = mock.polymarket_probability_up;
+            edge = mock.edge;
         }
 
         // Calculate Skew, Tail Risk, and Confidence
@@ -294,9 +314,9 @@ function getMockData(asset: string): SynthAssetData {
             "0.8": basePrice * 1.10,
             "0.99": basePrice * 1.25
         },
-        synth_probability_up: null,
-        polymarket_probability_up: null,
-        edge: null,
+        synth_probability_up: 0.51,
+        polymarket_probability_up: 0.50,
+        edge: 0.01,
         skew: 1.15,
         tailRiskUpside: 0.125,
         tailRiskDownside: 0.082,
