@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0a0a0c;
+  --color-foreground: #ffffff;
+  --color-primary: #DFFE00;
+  /* Chartreuse/Neon */
+  --color-card: #111114;
+  --color-border: rgba(255, 255, 255, 0.08);
+  /* 1px thin grid lines */
+  --color-input: rgba(255, 255, 255, 0.04);
+  --color-ring: #DFFE00;
+
+  --radius-2xl: 1.5rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+  --radius-sm: 0.5rem;
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  body {
+    background-color: #0a0a0c;
+    color: #ffffff;
+    @apply antialiased;
+    background-image:
+      radial-gradient(circle at 50% -20%, rgba(223, 254, 0, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(255, 255, 255, 0.02) 0%, transparent 30%);
+    background-attachment: fixed;
+    letter-spacing: -0.03em;
+    /* Tighter tracking for premium feel */
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: var(--color-primary);
+    color: #000;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    /* Buzzworthy style: flat dark, sharp or pill, thin white 10% border */
+    @apply bg-card border border-white/10 rounded-2xl;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+    transition: border-color 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-card:hover {
+    @apply border-white/20;
+    transform: translateY(-2px);
+  }
+
+  .glass-morphism {
+    @apply bg-black/40 backdrop-blur-xl border border-white/10 rounded-full;
+  }
+
+  .pearlescent-btn {
+    background: transparent;
+    @apply text-white border border-white/10 transition-all outline-none rounded-full font-medium tracking-wide text-xs;
+  }
+
+  .pearlescent-btn:hover {
+    @apply bg-white text-black;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 30px rgba(223, 254, 0, 0.15);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(223, 254, 0, 0.4);
+  }
+
+  /* Buzzworthy specific large typography layout util */
+  .display-super {
+    @apply text-5xl md:text-[6.5rem] leading-[0.85] font-bold tracking-tight uppercase;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
