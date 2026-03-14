@@ -24,7 +24,7 @@ export async function GET() {
         }
 
         // Extract the market data from the JSONB column
-        const processedMarkets = markets.map(row => row.data);
+        const processedMarkets = (markets || []).map((row: any) => row.data);
 
         console.log(`Aggregator: Returning ${processedMarkets.length} cached markets.`);
         return NextResponse.json(processedMarkets);
