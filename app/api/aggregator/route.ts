@@ -1,74 +1,36 @@
 import { NextResponse } from 'next/server';
-
-import { fetchPolymarketData } from '../../lib/polymarket';
-import { fetchAllSynthForAssets } from '../../lib/synthdata';
-import { extractMarketCondition, calculateTargetProbability } from '../../lib/synthTargetMath';
+import { supabase } from '../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
-        console.log("Aggregator: Fetching Polymarket data...");
-        const polymarketData = await fetchPolymarketData();
+        console.log("Aggregator: Fetching markets from Supabase cache...");
+        
+        // Fetch from Supabase instead of direct APIs
+        const { data: markets, error } = await supabase
+            .from('markets')
+            .select('data')
+            .order('updated_at', { ascending: false });
 
-        if (!Array.isArray(polymarketData) || polymarketData.length === 0) {
-            console.log("Aggregator: No relevant markets found.");
-            return NextResponse.json({ error: 'No relevant markets found' }, { status: 404 });
+        if (error) {
+            console.error('Aggregator: Supabase error:', error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        // 1. Warm up asset cache
-        const uniqueAssets = [...new Set(polymarketData.map(m => m.asset).filter(Boolean))] as string[];
-        const assetDataMap = await fetchAllSynthForAssets(uniqueAssets);
+        if (!markets || markets.length === 0) {
+            console.log("Aggregator: No cached markets found. Please run /api/sync.");
+            return NextResponse.json({ error: 'No cached markets found' }, { status: 404 });
+        }
 
-        // 2. Map data for each market
-        const aggregated = polymarketData.map(market => {
-            const sd = market.asset ? assetDataMap[market.asset.toUpperCase()] : null;
-            if (!sd) return { ...market, synthdata: null };
+        // Extract the market data from the JSONB column
+        const processedMarkets = markets.map(row => row.data);
 
-            let fairProb: number | null = null;
-            const condition = extractMarketCondition(market.slug) || extractMarketCondition(market.title);
-
-            if (condition) {
-                if (condition.type === 'directional' && sd.synth_probability_up !== null) {
-                    fairProb = sd.synth_probability_up;
-                } else if (sd.finalDistribution) {
-                    fairProb = calculateTargetProbability(condition, sd.finalDistribution);
-                }
-            } else if (sd.synth_probability_up !== null) {
-                fairProb = sd.synth_probability_up;
-            }
-
-            // Calculation fails if fairProb is still null
-            if (fairProb === null) return { ...market, synthdata: null };
-
-            // Accurate discrepancy
-            const discrepancy = fairProb - (market.impliedOdds || 0.5);
-
-            return {
-                ...market,
-                synthdata: {
-                    fairProbability: fairProb,
-                    discrepancy: discrepancy,
-                    isRisk: Math.abs(discrepancy) > 0.05
-                }
-            };
-        });
-
-        // 3. FILTERING: Keep it relaxed so we show SOME data even if edge is small
-        const safeAggregated = aggregated.filter(item => 
-            item.synthdata !== null &&
-            item.impliedOdds !== null &&
-            // item.impliedOdds !== 0.5 && // Show all markets
-            // Math.abs(item.synthdata.discrepancy) > 0.0001 && // Show even small edges
-            !item.title.toLowerCase().includes('up or down') &&
-            !item.slug.toLowerCase().includes('up-or-down')
-        );
-
-        console.log(`Aggregator: Returning ${safeAggregated.length} markets with validated Synth edge.`);
-        return NextResponse.json(safeAggregated);
+        console.log(`Aggregator: Returning ${processedMarkets.length} cached markets.`);
+        return NextResponse.json(processedMarkets);
 
     } catch (error) {
         console.error('Aggregator error:', error);
-        return NextResponse.json({ error: 'Failed to aggregate data' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to fetch cached data' }, { status: 500 });
     }
 }
