@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getAggregatedMarkets } from '../../../lib/aggregatorCore';
-import { supabaseAdmin } from '../../../lib/supabase';
+import { getAggregatedMarkets } from '../../lib/aggregatorCore';
+import { supabaseAdmin } from '../../lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
